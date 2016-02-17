@@ -15,15 +15,13 @@ namespace BackendMetadataGenerator
 		public static List<MethodInfo> GetMethods(Assembly assembly)
 		{
 			var result = new List<MethodInfo>();
+			var methods = assembly.GetTypes().SelectMany(type => type.GetMethods());
 			// ReSharper disable once LoopCanBeConvertedToQuery
-			foreach (var type in assembly.GetTypes())
+			foreach (MethodInfo method in methods)
 			{
-				var methods = type.GetMethods();
-				// ReSharper disable once LoopCanBeConvertedToQuery
-				foreach (MethodInfo method in methods)
+				var customAttributes = method.GetCustomAttributes();
+				if (customAttributes != null && customAttributes.Any(attribute => attribute.GetType().Name == "SoapDocumentMethodAttribute"))
 				{
-					var soapMethodAttribute = method.GetCustomAttributes().FirstOrDefault(attribute => attribute.GetType().Name == "SoapDocumentMethodAttribute");
-					if (soapMethodAttribute == null) continue;
 					result.Add(method);
 				}
 			}
