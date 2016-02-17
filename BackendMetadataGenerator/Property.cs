@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
-namespace ArrayProperties
+namespace BackendMetadataGenerator
 {
 	[DebuggerDisplay("{Name}")]
 	public class Property

@@ -1,4 +1,4 @@
-﻿namespace Program
+﻿namespace BackendMetadataGenerator
 {
 	public class TypeInfo
 	{

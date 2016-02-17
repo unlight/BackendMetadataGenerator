@@ -5,11 +5,10 @@ using System.Linq;
 using System.Reflection;
 using System.Web.Script.Serialization;
 using System.Xml.Serialization;
-using ArrayProperties;
 
-namespace Program
+namespace BackendMetadataGenerator
 {
-	internal class Cli
+	internal class Program
 	{
 		private static Assembly _assembly;
 

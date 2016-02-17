@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.CSharp;
 
-namespace ArrayProperties
+namespace BackendMetadataGenerator
 {
 	internal static class Utils
 	{
