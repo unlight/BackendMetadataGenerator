@@ -35,7 +35,9 @@ namespace BackendMetadataGenerator
 
 		public static object ToJson(List<Property> properties)
 		{
-			return properties.ToDictionary(p =>
+			return properties
+				.Where(p => p.IsArray || p.JavaScriptType != null)
+				.ToDictionary(p =>
 			{
 				var key = "/Envelope/Body/" + p.XPathName;
 				if (!p.IsArray) return key;
