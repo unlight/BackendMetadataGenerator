@@ -23,13 +23,14 @@ namespace BackendMetadataGenerator
 			var methods = GetMethods();
 			foreach (var method in methods)
 			{
-				if (method.Name != "GetDealsById") continue;
+				//if (method.Name != "GetDealsById") continue;
 				var data = GetMetadata(method);
 				var filename = String.Format("{0}.json", method.Name);
 				var json = data.ChildProperties.ToDictionary(p => p.XPathName, p => new
 				{
 					name = p.Name,
-					isArray = p.IsArray
+					isArray = p.IsArray,
+					type = p.JavaScriptType
 				});
 				File.WriteAllText(filename, Serializer.Serialize(json));
 			}

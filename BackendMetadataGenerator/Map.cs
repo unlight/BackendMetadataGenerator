@@ -18,5 +18,19 @@ namespace BackendMetadataGenerator
 			{typeof (SByte), "sbyte"},
 			{typeof (Int16), "short"}
 		};
+
+		public static Dictionary<Type, string> JavaScriptTypes = new Dictionary<Type, string>
+		{
+			{typeof (Byte), "number"},
+			{typeof (Boolean), "boolean"},
+			{typeof (Decimal), "number"},
+			{typeof (Double), "number"},
+			{typeof (Single), "number"},
+			{typeof (Int32), "number"},
+			{typeof (Int64), "number"},
+			{typeof (SByte), "number"},
+			{typeof (Int16), "number"},
+			{typeof (DateTime), "date"},
+		};
 	}
 }

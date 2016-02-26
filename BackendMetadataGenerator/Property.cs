@@ -20,28 +20,27 @@ namespace BackendMetadataGenerator
 			PropertyInfo = propertyInfo;
 			Parent = parent;
 			Name = propertyInfo.Name;
-			var type = propertyInfo.PropertyType;
-			IsArray = type.BaseType == typeof (Array);
+			Type = propertyInfo.PropertyType;
+			IsArray = Type.BaseType == typeof(Array);
 			if (IsArray)
 			{
-				type = type.GetElementType();
-				ArrayItemName = type.Name;
+				Type = Type.GetElementType();
+				ArrayItemName = Type.Name;
 			}
-			if (type.FullName.StartsWith("System."))
+			if (Type.FullName.StartsWith("System."))
 			{
-				if (type.FullName.StartsWith("System.Nullable"))
+				if (Type.FullName.StartsWith("System.Nullable"))
 				{
 					IsNullable = true;
-					type = type.GetGenericArguments().First();
+					Type = Type.GetGenericArguments().First();
 				}
-				if (Map.BuiltInTypes.ContainsKey(type))
+				if (Map.BuiltInTypes.ContainsKey(Type))
 				{
-					ArrayItemName = Map.BuiltInTypes[type];
+					ArrayItemName = Map.BuiltInTypes[Type];
 				}
 				return;
 			}
-			Type = type;
-			Properties = Program.GetProperties(type, this);
+			Properties = Program.GetProperties(Type, this);
 		}
 
 		public string Name { get; set; }
@@ -55,8 +54,6 @@ namespace BackendMetadataGenerator
 		public List<Property> Properties { get; set; }
 
 		public PropertyInfo PropertyInfo { get; set; }
-
-		public string TypeName { get; set; }
 
 		public bool IsNullable { get; set; }
 
@@ -103,6 +100,19 @@ namespace BackendMetadataGenerator
 						result.Add(p);
 						result.AddRange(p.ChildProperties);
 					});
+				}
+				return result;
+			}
+		}
+
+		public string JavaScriptType
+		{
+			get
+			{
+				string result = null;
+				if (Type != null && Map.JavaScriptTypes.ContainsKey(Type))
+				{
+					result = Map.JavaScriptTypes[Type];
 				}
 				return result;
 			}
