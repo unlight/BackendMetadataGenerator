@@ -3,32 +3,74 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Serialization;
 
 namespace BackendMetadataGenerator
 {
 	[DebuggerDisplay("{Name}")]
 	public class Property
 	{
-		public bool IsArray;
-		public string Name;
-		public Property ParentNode;
-		public List<Property> Properties;
-		public PropertyInfo RefProperty;
-		public string TypeName;
-
-		public bool HasSubProps
+		public Property(string name)
 		{
-			get
-			{
-				return Properties.Any(x => x.Properties != null && x.Properties.Count > 0);
-			}
+			Name = name;
 		}
 
-		public bool HasSubPropsArray
+		public Property(PropertyInfo propertyInfo, Property parent = null)
+		{
+			PropertyInfo = propertyInfo;
+			Parent = parent;
+			Name = propertyInfo.Name;
+			var type = propertyInfo.PropertyType;
+			IsArray = type.BaseType == typeof (Array);
+			if (IsArray)
+			{
+				type = type.GetElementType();
+				ArrayItemName = type.Name;
+			}
+			if (type.FullName.StartsWith("System."))
+			{
+				if (type.FullName.StartsWith("System.Nullable"))
+				{
+					IsNullable = true;
+					type = type.GetGenericArguments().First();
+				}
+				if (Map.BuiltInTypes.ContainsKey(type))
+				{
+					ArrayItemName = Map.BuiltInTypes[type];
+				}
+				return;
+			}
+			Type = type;
+			Properties = Program.GetProperties(type, this);
+		}
+
+		public string Name { get; set; }
+
+		public bool IsArray { get; set; }
+
+		public string ArrayItemName { get; set; }
+
+		public Property Parent { get; set; }
+
+		public List<Property> Properties { get; set; }
+
+		public PropertyInfo PropertyInfo { get; set; }
+
+		public string TypeName { get; set; }
+
+		public bool IsNullable { get; set; }
+
+		protected Type Type { get; set; }
+
+		public List<Type> IncludedTypes
 		{
 			get
 			{
-				return Properties.Any(x => x.Properties.Any(property => property.IsArray));
+				var includedTypes = Type.GetCustomAttributes()
+					.OfType<XmlIncludeAttribute>()
+					.Select(attribute => attribute.Type)
+					.ToList();
+				return includedTypes;
 			}
 		}
 
@@ -39,39 +81,31 @@ namespace BackendMetadataGenerator
 				var result = Name;
 				if (IsArray)
 				{
-					var arrayItemName = GetArrayItemName();
-					if (arrayItemName != null)
-					{
-						result += "/" + arrayItemName;
-					}
+					result = result + "/" + ArrayItemName;
+				}
+				if (Parent != null)
+				{
+					result = Parent.XPathName + "/" + result;
 				}
 				return result;
 			}
 		}
 
-		public bool HasParent(Property parentProperty)
+		public List<Property> ChildProperties
 		{
-			if (parentProperty == null) return false;
-			Property p;
-			for (p = this; p != null; p = p.ParentNode)
+			get
 			{
-				if (p.TypeName == parentProperty.TypeName) return true;
+				var result = new List<Property>();
+				if (Properties != null)
+				{
+					Properties.ForEach(p =>
+					{
+						result.Add(p);
+						result.AddRange(p.ChildProperties);
+					});
+				}
+				return result;
 			}
-
-			return false;
-		}
-
-		// ReSharper disable once MemberCanBePrivate.Local
-		public string GetArrayItemName()
-		{
-			if (!IsArray) throw new InvalidOperationException();
-			var name = RefProperty.PropertyType.Name;
-			if (RefProperty.PropertyType.FullName.StartsWith("System."))
-			{
-				name = name.ToLower();
-			}
-			//return null;
-			return name.Substring(0, name.Length - 2);
 		}
 	}
 }
