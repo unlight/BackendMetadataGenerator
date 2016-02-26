@@ -28,6 +28,11 @@ namespace BackendMetadataGenerator
 			{
 				Type = Type.GetElementType();
 				ArrayItemName = Type.Name;
+				var attribute = propertyInfo.GetCustomAttributes().OfType<XmlArrayItemAttribute>().FirstOrDefault();
+				if (attribute != null && !string.IsNullOrEmpty(attribute.ElementName))
+				{
+					ArrayItemName = attribute.ElementName;
+				}
 			}
 			if (Type.FullName.StartsWith("System."))
 			{
