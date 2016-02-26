@@ -23,17 +23,34 @@ namespace BackendMetadataGenerator
 			var methods = GetMethods();
 			foreach (var method in methods)
 			{
+				//if (method.Name != "GetMarketDataDealSummary") continue;
 				//if (method.Name != "GetDealsById") continue;
+				//if (method.Name != "GetCompanyIPOProfiles") continue;
 				var data = GetMetadata(method);
+				var json = ToJson(data.ChildProperties);
 				var filename = String.Format("{0}.json", method.Name);
-				var json = data.ChildProperties.ToDictionary(p => p.XPathName, p => new
-				{
-					name = p.Name,
-					isArray = p.IsArray,
-					type = p.JavaScriptType
-				});
 				File.WriteAllText(filename, Serializer.Serialize(json));
 			}
+		}
+
+		public static object ToJson(List<Property> properties)
+		{
+			return properties.ToDictionary(p =>
+			{
+				var key = "/Envelope/Body/" + p.XPathName;
+				if (!p.IsArray) return key;
+				var keyParts = key.Split('/');
+				if (keyParts.Last() != p.Name)
+				{
+					key = keyParts.Take(keyParts.Length - 1).Join("/");
+				}
+				return key;
+			}, p => new
+			{
+				name = p.Name,
+				isArray = p.IsArray,
+				parse = p.JavaScriptType
+			});
 		}
 
 		public static List<MethodInfo> GetMethods()
@@ -91,8 +108,9 @@ namespace BackendMetadataGenerator
 				if (property.IncludedTypes.Count == 0) continue;
 				foreach (var includedType in property.IncludedTypes)
 				{
+					var pr = property;
 					var properties = GetProperties(includedType, property)
-						.Where(p => !property.Properties.Exists(pr => pr.Name == p.Name));
+						.Where(p => pr.Properties != null && !pr.Properties.Exists(pp => pp.Name == p.Name));
 					property.Properties.AddRange(properties);
 				}
 			}
@@ -110,6 +128,11 @@ namespace BackendMetadataGenerator
 				if (customAttributes == null) continue;
 				if (customAttributes.OfType<XmlIgnoreAttribute>().Any()) continue;
 				var p = new Property(propertyInfo, parent);
+				var noSubProperties = (p.Type == type || p.Type.FullName.StartsWith("System."));
+				if (!noSubProperties)
+				{
+					p.Properties = GetProperties(p.Type, p);
+				}
 				result.Add(p);
 			}
 			return result;

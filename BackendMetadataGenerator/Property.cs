@@ -10,6 +10,8 @@ namespace BackendMetadataGenerator
 	[DebuggerDisplay("{Name}")]
 	public class Property
 	{
+		private List<Property> _properties;
+
 		public Property(string name)
 		{
 			Name = name;
@@ -38,9 +40,7 @@ namespace BackendMetadataGenerator
 				{
 					ArrayItemName = Map.BuiltInTypes[Type];
 				}
-				return;
 			}
-			Properties = Program.GetProperties(Type, this);
 		}
 
 		public string Name { get; set; }
@@ -51,13 +51,17 @@ namespace BackendMetadataGenerator
 
 		public Property Parent { get; set; }
 
-		public List<Property> Properties { get; set; }
+		public List<Property> Properties
+		{
+			get { return _properties ?? new List<Property>(); }
+			set { _properties = value; }
+		}
 
 		public PropertyInfo PropertyInfo { get; set; }
 
 		public bool IsNullable { get; set; }
 
-		protected Type Type { get; set; }
+		public Type Type { get; set; }
 
 		public List<Type> IncludedTypes
 		{
