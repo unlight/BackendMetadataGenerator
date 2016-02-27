@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Web.Script.Serialization;
 using System.Web.Services.Protocols;
 using System.Xml.Serialization;
 using Microsoft.CSharp;
@@ -15,7 +14,6 @@ namespace BackendMetadataGenerator
 	internal class Program
 	{
 		private static Assembly _assembly;
-		private static readonly JavaScriptSerializer Serializer = new JavaScriptSerializer();
 		// ReSharper disable once UnusedParameter.Local
 		private static void Main(string[] args)
 		{
@@ -26,33 +24,34 @@ namespace BackendMetadataGenerator
 				//if (method.Name != "GetMarketDataDealSummary") continue;
 				//if (method.Name != "GetDealsById") continue;
 				//if (method.Name != "GetCompanyIPOProfiles") continue;
+				//if (method.Name != "GetFundRaisingReport") continue;
 				var data = GetMetadata(method);
-				var json = ToJson(data.ChildProperties);
+				var json = GetJsonObject(data.ChildProperties);
 				var filename = String.Format("{0}.json", method.Name);
-				File.WriteAllText(filename, Serializer.Serialize(json));
+				File.WriteAllText(filename, json.ToJson());
 			}
 		}
 
-		public static object ToJson(List<Property> properties)
+		public static object GetJsonObject(List<Property> properties)
 		{
 			return properties
 				.Where(p => p.IsArray || p.JavaScriptType != null)
 				.ToDictionary(p =>
-			{
-				var key = "/Envelope/Body/" + p.XPathName;
-				if (!p.IsArray) return key;
-				var keyParts = key.Split('/');
-				if (keyParts.Last() != p.Name)
 				{
-					key = keyParts.Take(keyParts.Length - 1).Join("/");
-				}
-				return key;
-			}, p => new
-			{
-				name = p.Name,
-				isArray = p.IsArray,
-				parse = p.JavaScriptType
-			});
+					var key = "/Envelope/Body/" + p.XPathName;
+					if (!p.IsArray) return key;
+					var keyParts = key.Split('/');
+					if (keyParts.Last() != p.Name)
+					{
+						key = keyParts.Take(keyParts.Length - 1).Join("/");
+					}
+					return key;
+				}, p => new
+				{
+					name = p.Name,
+					isArray = p.IsArray,
+					parse = p.JavaScriptType
+				});
 		}
 
 		public static List<MethodInfo> GetMethods()

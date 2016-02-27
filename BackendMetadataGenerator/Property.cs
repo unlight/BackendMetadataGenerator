@@ -34,6 +34,11 @@ namespace BackendMetadataGenerator
 					ArrayItemName = attribute.ElementName;
 				}
 			}
+			//var elementAttribute = propertyInfo.GetCustomAttributes().OfType<XmlElementAttribute>().FirstOrDefault();
+			//if (elementAttribute != null && !string.IsNullOrEmpty(elementAttribute.ElementName))
+			//{
+			//	Debugger.Break();
+			//}
 			if (Type.FullName.StartsWith("System."))
 			{
 				if (Type.FullName.StartsWith("System.Nullable"))
