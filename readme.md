@@ -5,14 +5,13 @@ This information will help to fix response from SOAP server (cast to numbers, bo
 
 USAGE
 -----
-1. Place c# proxy class files (with *.cs extension) near executable file (BackendMetadataGenerator.exe)
+1. Place C# proxy class files (with *.cs extension) near executable file (BackendMetadataGenerator.exe)
 2. Run the program
 3. Get `<MethodName>.json` file
 
 The json file contains xpath of response key and value is an object, which contains:  
-`isArray` (boolean) - indicates that item is array
-`parse` (string) - javascript type (hint for casting), can be ("number", "boolean", etc.)
----
+* `isArray` (boolean) - indicates that item is array
+* `parse` (string) - javascript type (hint for casting), can be ("number", "boolean", etc.)
 
 EXAMPLE
 -------
@@ -28,6 +27,7 @@ xml2js.parseString(data.response, {
     validator: function(xpath, currentValue, node) {
     	var info = metadata[xpath];
     	// parse node somehow using info
+        return node;
     }
 }, function(err, result) {});
 ```
