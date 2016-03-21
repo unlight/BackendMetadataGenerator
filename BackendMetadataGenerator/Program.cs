@@ -21,7 +21,7 @@ namespace BackendMetadataGenerator
 			var methods = GetMethods();
 			foreach (var method in methods)
 			{
-				//var whiteList = new List<string>()
+				//if (!new List<string>()
 				//{
 				//	//"GetMarketDataDealSummary",
 				//	//"GetCompanyIPOProfiles",
@@ -29,8 +29,7 @@ namespace BackendMetadataGenerator
 				//	//"GetFundRaisingReport",
 				//	//"HeadlineOp_2",
 				//	"getSubmissionInfoByDCN",
-				//};
-				//if (!whiteList.Contains(method.Name)) continue;
+				//}.Contains(method.Name)) continue;
 				var data = GetMetadata(method);
 				var json = GetJsonObject(data.ChildProperties);
 				var filename = String.Format("{0}.json", method.Name);
@@ -64,8 +63,9 @@ namespace BackendMetadataGenerator
 				{
 					xpath = GetXPath(p),
 					name = p.Name,
-					isArray = p.IsArray,
-					parse = p.JavaScriptType
+					parse = p.JavaScriptType,
+					//isArray = p.IsArray,
+					//noNested = p.NoNestedElements
 				});
 		}
 

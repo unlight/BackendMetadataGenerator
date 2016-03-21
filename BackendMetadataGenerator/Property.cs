@@ -136,9 +136,29 @@ namespace BackendMetadataGenerator
 			get
 			{
 				string result = null;
+				if (IsArray) return "array";
 				if (Type != null && Map.JavaScriptTypes.ContainsKey(Type))
 				{
 					result = Map.JavaScriptTypes[Type];
+				}
+				return result;
+			}
+		}
+
+		public bool NoNestedElements
+		{
+			get
+			{
+				bool result = false;
+				if (Properties.Count == 0) return true;
+				if (ChildProperties.Count > 0)
+				{
+					result = true;
+					var hasAttrs = ChildProperties.Any(p => p.PropertyData.CustomAttributes.OfType<XmlAttributeAttribute>().Any());
+					if (hasAttrs && ChildProperties.All(p => p.Properties.Count == 0))
+					{
+						result = true;
+					}
 				}
 				return result;
 			}
