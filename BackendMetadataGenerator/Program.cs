@@ -118,6 +118,17 @@ namespace BackendMetadataGenerator
 			// ReSharper disable once PossibleNullReferenceException
 			var result = new Property(method.ReturnParameter.ParameterType);
 			var data = GetProperties(result.Type, result);
+			var xmlArrayAttribute = method.ReturnParameter.GetCustomAttributes().OfType<XmlArrayAttribute>().FirstOrDefault();
+			if (xmlArrayAttribute != null)
+			{
+				result.Name = xmlArrayAttribute.ElementName;
+			}
+			var xmlArrayItemAttribute = method.ReturnParameter.GetCustomAttributes().OfType<XmlArrayItemAttribute>().FirstOrDefault();
+			if (xmlArrayItemAttribute != null)
+			{
+				result.ArrayItemName = xmlArrayItemAttribute.ElementName;
+			}
+
 			foreach (var property in data)
 			{
 				if (property.IncludedTypes.Count == 0) continue;

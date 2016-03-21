@@ -36,11 +36,19 @@ namespace BackendMetadataGenerator
 				}
 			}
 			IsEnum = Type.BaseType == typeof (Enum);
-			//var elementAttribute = propertyInfo.CustomAttributes.OfType<XmlElementAttribute>().FirstOrDefault();
-			//if (elementAttribute != null && !string.IsNullOrEmpty(elementAttribute.ElementName))
-			//{
-			//	Debugger.Break();
-			//}
+
+			// Check XmlArray attributes and fix name.
+			var xmlArrayAttribute = propertyData.CustomAttributes.OfType<XmlArrayAttribute>().FirstOrDefault();
+			if (xmlArrayAttribute != null)
+			{
+				Name = xmlArrayAttribute.ElementName;
+			}
+			var xmlArrayItemAttribute = propertyData.CustomAttributes.OfType<XmlArrayItemAttribute>().FirstOrDefault();
+			if (xmlArrayItemAttribute != null)
+			{
+				ArrayItemName = xmlArrayItemAttribute.ElementName;
+			}
+
 			if (Type.FullName.StartsWith("System."))
 			{
 				if (Type.FullName.StartsWith("System.Nullable"))
