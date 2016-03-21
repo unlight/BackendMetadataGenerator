@@ -43,6 +43,10 @@ namespace BackendMetadataGenerator
 			var key = p.XPathName;
 			var keyParts = key.Split('/').ToList();
 			keyParts[0] = ""; // Remove constant.
+			if (p.IsAttribute && p.Parent != null && p.Parent.IsArray)
+			{
+				keyParts.RemoveAt(keyParts.Count - 2);
+			}
 			if (p.IsArray)
 			{
 				if (keyParts.Last() != p.Name)

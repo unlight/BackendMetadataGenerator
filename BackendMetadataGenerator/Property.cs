@@ -85,6 +85,15 @@ namespace BackendMetadataGenerator
 
 		public Type Type { get; set; }
 
+		public bool IsAttribute
+		{
+			get
+			{
+				var attribute = PropertyData.CustomAttributes.OfType<XmlAttributeAttribute>().FirstOrDefault();
+				return attribute != null;
+			}
+		}
+
 		public List<Type> IncludedTypes
 		{
 			get
