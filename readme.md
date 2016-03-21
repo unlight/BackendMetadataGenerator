@@ -10,8 +10,9 @@ USAGE
 3. Get `<MethodName>.json` file
 
 The json file contains xpath of response key and value is an object, which contains:  
-* `isArray` (boolean) - indicates that item is array
-* `parse` (string) - javascript type (hint for casting), can be ("number", "boolean", etc.)
+* `xpath` (string) - part of response path (maybe useful when using validator option)  
+* `isArray` (boolean) - indicates that item is array  
+* `parse` (string) - javascript type (hint for casting), can be ("number", "boolean", etc.)  
 
 EXAMPLE
 -------

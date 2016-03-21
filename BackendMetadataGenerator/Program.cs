@@ -21,10 +21,14 @@ namespace BackendMetadataGenerator
 			var methods = GetMethods();
 			foreach (var method in methods)
 			{
-				//if (method.Name != "GetMarketDataDealSummary") continue;
-				//if (method.Name != "GetDealsById") continue;
-				//if (method.Name != "GetCompanyIPOProfiles") continue;
-				//if (method.Name != "GetFundRaisingReport") continue;
+				var whiteList = new List<string>()
+				{
+					//"GetMarketDataDealSummary",
+					"GetCompanyIPOProfiles",
+					//"GetDealsById",
+					//"GetFundRaisingReport",
+				};
+				if (!whiteList.Contains(method.Name)) continue;
 				var data = GetMetadata(method);
 				var json = GetJsonObject(data.ChildProperties);
 				var filename = String.Format("{0}.json", method.Name);
@@ -32,22 +36,31 @@ namespace BackendMetadataGenerator
 			}
 		}
 
+		private static string GetXPath(Property p)
+		{
+			//var key = "/Envelope/Body/" + p.XPathName;
+			var key = p.XPathName;
+			var keyParts = key.Split('/').ToList();
+			keyParts[0] = ""; // Remove constant.
+			if (p.IsArray)
+			{
+				if (keyParts.Last() != p.Name)
+				{
+					// Remove last item.
+					keyParts.RemoveAt(keyParts.Count - 1);
+				}
+			}
+			key = keyParts.Join("/");
+			return key;
+		}
+
 		public static object GetJsonObject(List<Property> properties)
 		{
 			return properties
 				.Where(p => p.IsArray || p.JavaScriptType != null)
-				.ToDictionary(p =>
+				.Select(p => new
 				{
-					var key = "/Envelope/Body/" + p.XPathName;
-					if (!p.IsArray) return key;
-					var keyParts = key.Split('/');
-					if (keyParts.Last() != p.Name)
-					{
-						key = keyParts.Take(keyParts.Length - 1).Join("/");
-					}
-					return key;
-				}, p => new
-				{
+					xpath = GetXPath(p),
 					name = p.Name,
 					isArray = p.IsArray,
 					parse = p.JavaScriptType
