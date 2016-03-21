@@ -1,6 +1,7 @@
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -21,14 +22,15 @@ namespace BackendMetadataGenerator
 			var methods = GetMethods();
 			foreach (var method in methods)
 			{
-				var whiteList = new List<string>()
-				{
-					//"GetMarketDataDealSummary",
-					"GetCompanyIPOProfiles",
-					//"GetDealsById",
-					//"GetFundRaisingReport",
-				};
-				if (!whiteList.Contains(method.Name)) continue;
+				//var whiteList = new List<string>()
+				//{
+				//	//"GetMarketDataDealSummary",
+				//	//"GetCompanyIPOProfiles",
+				//	//"GetDealsById",
+				//	//"GetFundRaisingReport",
+				//	"HeadlineOp_2",
+				//};
+				//if (!whiteList.Contains(method.Name)) continue;
 				var data = GetMetadata(method);
 				var json = GetJsonObject(data.ChildProperties);
 				var filename = String.Format("{0}.json", method.Name);
@@ -135,20 +137,45 @@ namespace BackendMetadataGenerator
 		public static List<Property> GetProperties(Type type, Property parent)
 		{
 			var result = new List<Property>();
-			// ReSharper disable once LoopCanBeConvertedToQuery
-			foreach (var propertyInfo in type.GetProperties())
+			var propertyData = CollectPropertyData(type);
+			foreach (var info in propertyData)
 			{
-				var customAttributes = propertyInfo.GetCustomAttributes();
-				if (customAttributes == null) continue;
-				if (customAttributes.OfType<XmlIgnoreAttribute>().Any()) continue;
-				var p = new Property(propertyInfo, parent);
-				var noSubProperties = (p.Type == type || p.Type.FullName.StartsWith("System."));
-				if (!noSubProperties)
+				if (info.CustomAttributes.OfType<XmlIgnoreAttribute>().Any()) continue;
+				var p = new Property(info, parent);
+				if (!p.NoSubProperties(type))
 				{
 					p.Properties = GetProperties(p.Type, p);
 				}
 				result.Add(p);
 			}
+			return result;
+		}
+
+		private static List<PropertyData> CollectPropertyData(Type type)
+		{
+			var result = new List<PropertyData>();
+			// ReSharper disable once LoopCanBeConvertedToQuery
+			foreach (var propertyInfo in type.GetProperties())
+			{
+				result.Add(new PropertyData()
+				{
+					CustomAttributes = propertyInfo.GetCustomAttributes().ToList(),
+					Name = propertyInfo.Name,
+					Type = propertyInfo.PropertyType
+				});
+			}
+			var publicFields = type.GetFields().Where(f => f.IsPublic);
+			// ReSharper disable once LoopCanBeConvertedToQuery
+			foreach (var fieldInfo in publicFields)
+			{
+				result.Add(new PropertyData()
+				{
+					CustomAttributes = fieldInfo.GetCustomAttributes().ToList(),
+					Name = fieldInfo.Name,
+					Type = fieldInfo.FieldType
+				});
+			}
+			System.Enum x;
 			return result;
 		}
 	}

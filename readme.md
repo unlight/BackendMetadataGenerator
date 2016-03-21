@@ -32,6 +32,25 @@ xml2js.parseString(data.response, {
     }
 }, function(err, result) {});
 ```
+`parseNode` function can be look like:  
+```js
+function parseNode(info, xpath, currentValue, node) {
+    node = replaceNil(node);
+    if (info && node !== null) {
+        var parse = info.parse;
+        switch (parse) {
+            case "number": return +node;
+            case "boolean": return (node === "true" ? true : (node === "false" ? false : node));
+            case "date": 
+            default: break;
+        }
+        if (info.isArray && !Array.isArray(node)) {
+            node = nodeToArray(node, xpath);
+        }
+    }
+    return node;
+}
+```
 
 TODO
 ----

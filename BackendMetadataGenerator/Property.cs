@@ -17,24 +17,25 @@ namespace BackendMetadataGenerator
 			Name = name;
 		}
 
-		public Property(PropertyInfo propertyInfo, Property parent = null)
+		public Property(PropertyData propertyData, Property parent = null)
 		{
-			PropertyInfo = propertyInfo;
+			PropertyData = propertyData;
 			Parent = parent;
-			Name = propertyInfo.Name;
-			Type = propertyInfo.PropertyType;
+			Name = propertyData.Name;
+			Type = propertyData.Type;
 			IsArray = Type.BaseType == typeof(Array);
 			if (IsArray)
 			{
 				Type = Type.GetElementType();
 				ArrayItemName = Type.Name;
-				var attribute = propertyInfo.GetCustomAttributes().OfType<XmlArrayItemAttribute>().FirstOrDefault();
+				var attribute = propertyData.CustomAttributes.OfType<XmlArrayItemAttribute>().FirstOrDefault();
 				if (attribute != null && !string.IsNullOrEmpty(attribute.ElementName))
 				{
 					ArrayItemName = attribute.ElementName;
 				}
 			}
-			//var elementAttribute = propertyInfo.GetCustomAttributes().OfType<XmlElementAttribute>().FirstOrDefault();
+			IsEnum = Type.BaseType == typeof (Enum);
+			//var elementAttribute = propertyInfo.CustomAttributes.OfType<XmlElementAttribute>().FirstOrDefault();
 			//if (elementAttribute != null && !string.IsNullOrEmpty(elementAttribute.ElementName))
 			//{
 			//	Debugger.Break();
@@ -56,6 +57,8 @@ namespace BackendMetadataGenerator
 		public string Name { get; set; }
 
 		public bool IsArray { get; set; }
+		
+		public bool IsEnum { get; set; }
 
 		public string ArrayItemName { get; set; }
 
@@ -67,7 +70,7 @@ namespace BackendMetadataGenerator
 			set { _properties = value; }
 		}
 
-		public PropertyInfo PropertyInfo { get; set; }
+		public PropertyData PropertyData { get; set; }
 
 		public bool IsNullable { get; set; }
 
@@ -130,6 +133,14 @@ namespace BackendMetadataGenerator
 				}
 				return result;
 			}
+		}
+
+		public bool NoSubProperties(Type type)
+		{
+			if (Type == type) return true;
+			if (Type.FullName.StartsWith("System.")) return true;
+			if (IsEnum) return true;
+			return false;
 		}
 	}
 }
