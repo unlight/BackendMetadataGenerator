@@ -12,9 +12,10 @@ namespace BackendMetadataGenerator
 	{
 		private List<Property> _properties;
 
-		public Property(string name)
+		public Property(Type type)
+			: this(new PropertyData(){Type = type})
 		{
-			Name = name;
+			Name = type.Name;
 		}
 
 		public Property(PropertyData propertyData, Property parent = null)

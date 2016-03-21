@@ -1,7 +1,6 @@
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -28,7 +27,8 @@ namespace BackendMetadataGenerator
 				//	//"GetCompanyIPOProfiles",
 				//	//"GetDealsById",
 				//	//"GetFundRaisingReport",
-				//	"HeadlineOp_2",
+				//	//"HeadlineOp_2",
+				//	"getSubmissionInfoByDCN",
 				//};
 				//if (!whiteList.Contains(method.Name)) continue;
 				var data = GetMetadata(method);
@@ -116,9 +116,8 @@ namespace BackendMetadataGenerator
 		private static Property GetMetadata(MethodInfo method)
 		{
 			// ReSharper disable once PossibleNullReferenceException
-			var type = method.ReturnParameter.ParameterType;
-			var result = new Property(type.Name);
-			var data = GetProperties(type, result);
+			var result = new Property(method.ReturnParameter.ParameterType);
+			var data = GetProperties(result.Type, result);
 			foreach (var property in data)
 			{
 				if (property.IncludedTypes.Count == 0) continue;
@@ -175,7 +174,6 @@ namespace BackendMetadataGenerator
 					Type = fieldInfo.FieldType
 				});
 			}
-			System.Enum x;
 			return result;
 		}
 	}
