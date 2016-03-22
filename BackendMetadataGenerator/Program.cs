@@ -123,12 +123,12 @@ namespace BackendMetadataGenerator
 			var result = new Property(method.ReturnParameter.ParameterType);
 			var data = GetProperties(result.Type, result);
 			var xmlArrayAttribute = method.ReturnParameter.GetCustomAttributes().OfType<XmlArrayAttribute>().FirstOrDefault();
-			if (xmlArrayAttribute != null)
+			if (xmlArrayAttribute != null && !string.IsNullOrEmpty(xmlArrayAttribute.ElementName))
 			{
 				result.Name = xmlArrayAttribute.ElementName;
 			}
 			var xmlArrayItemAttribute = method.ReturnParameter.GetCustomAttributes().OfType<XmlArrayItemAttribute>().FirstOrDefault();
-			if (xmlArrayItemAttribute != null)
+			if (xmlArrayItemAttribute != null && !string.IsNullOrEmpty(xmlArrayItemAttribute.ElementName))
 			{
 				result.ArrayItemName = xmlArrayItemAttribute.ElementName;
 			}

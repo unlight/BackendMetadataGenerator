@@ -39,12 +39,12 @@ namespace BackendMetadataGenerator
 
 			// Check XmlArray attributes and fix name.
 			var xmlArrayAttribute = propertyData.CustomAttributes.OfType<XmlArrayAttribute>().FirstOrDefault();
-			if (xmlArrayAttribute != null)
+			if (xmlArrayAttribute != null && !string.IsNullOrEmpty(xmlArrayAttribute.ElementName))
 			{
 				Name = xmlArrayAttribute.ElementName;
 			}
 			var xmlArrayItemAttribute = propertyData.CustomAttributes.OfType<XmlArrayItemAttribute>().FirstOrDefault();
-			if (xmlArrayItemAttribute != null)
+			if (xmlArrayItemAttribute != null && !string.IsNullOrEmpty(xmlArrayItemAttribute.ElementName))
 			{
 				ArrayItemName = xmlArrayItemAttribute.ElementName;
 			}
@@ -111,6 +111,10 @@ namespace BackendMetadataGenerator
 			get
 			{
 				var result = Name;
+				if (IsAttribute)
+				{
+					result = "@" + result;
+				}
 				if (IsArray)
 				{
 					result = result + "/" + ArrayItemName;
