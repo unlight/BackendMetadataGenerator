@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
 using System.Web.Script.Serialization;
 
 namespace BackendMetadataGenerator
@@ -18,8 +21,23 @@ namespace BackendMetadataGenerator
 		{
 			var serializer = new JavaScriptSerializer();
 			var result = serializer.Serialize(o);
-			result = FormatJson(result);
+			//result = FormatJson(result);
 			return result;
+		}
+
+		public static string ToJson2(this object o)
+		{
+			MemoryStream memoryStream = new MemoryStream();
+			var settings = new DataContractJsonSerializerSettings
+			{
+				EmitTypeInformation = EmitTypeInformation.Never,
+				UseSimpleDictionaryFormat = true,
+			};
+			var serializer = new DataContractJsonSerializer(o.GetType(), settings);
+			serializer.WriteObject(memoryStream, o);
+			memoryStream.Position = 0;
+			string result = new StreamReader(memoryStream).ReadToEnd();
+			return FormatJson(result);
 		}
 
 		private static string FormatJson(string json)

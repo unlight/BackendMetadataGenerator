@@ -24,39 +24,60 @@ namespace BackendMetadataGenerator
 				//if (!new List<string>()
 				//{
 				//	//"GetMarketDataDealSummary",
-				//	//"GetCompanyIPOProfiles",
+				//	"GetCompanyIPOProfiles",
 				//	//"GetDealsById",
 				//	//"GetFundRaisingReport",
 				//	//"HeadlineOp_2",
-				//	"getSubmissionInfoByDCN",
+				//	//"getSubmissionInfoByDCN",
 				//}.Contains(method.Name)) continue;
-				var data = GetMetadata(method);
+				Property data = GetMetadata(method);
 				var json = GetJsonObject(data.ChildProperties);
-				var filename = String.Format("{0}.json", method.Name);
-				File.WriteAllText(filename, json.ToJson());
+				File.WriteAllText(String.Format("{0}.json", method.Name), json.ToJson());
+				var udfjson = GetUdfConfig(data);
+				((Dictionary<string, object>) ((Dictionary<string, object>)
+					udfjson["Request"])["Headers"])["SOAPAction"] = string.Format("\"{0}\"",data.SoapAction);
+				File.WriteAllText(String.Format("{0}.udf.json", method.Name), udfjson.ToJson());
 			}
 		}
 
-		private static string GetXPath(Property p)
+		public static Dictionary<string, object> GetUdfConfig(Property data)
 		{
-			//var key = "/Envelope/Body/" + p.XPathName;
-			var key = p.XPathName;
-			var keyParts = key.Split('/').ToList();
-			keyParts[0] = ""; // Remove constant.
-			if (p.IsAttribute && p.Parent != null && p.Parent.IsArray)
+			var d = new Dictionary<string, object>()
 			{
-				keyParts.RemoveAt(keyParts.Count - 2);
-			}
-			if (p.IsArray)
+				{"Version", "1.0.0"},
+				{"Request", new Dictionary<string, object>()
+					{
+						{"URL", "{{.env.url.tornado}}/urreq/rrurreq.dll?soaprequest"},
+						{"Headers", new Dictionary<string, object>(){
+							{"SOAPAction", ""},
+							{"Content-Type", "text/xml; charset=utf-8"}
+						}},
+						{"Method", "POST"},
+						{"Params", new Dictionary<string,object>()},
+					}
+				},
+				{"Error", new Dictionary<string, object>(){{"Tornado", new Dictionary<string, object>()}}},
+				{"Response", new UdfNode()}
+			};
+			var response = UdfSelector(data);
+			d["Response"] = new Dictionary<string, object>() {{data.Name, response}};
+			return d;
+		}
+
+		private static UdfResponse UdfSelector(Property p)
+		{
+			UdfResponse child = null;
+			if (p.Properties.Count == 0)
 			{
-				if (keyParts.Last() != p.Name)
-				{
-					// Remove last item.
-					keyParts.RemoveAt(keyParts.Count - 1);
-				}
+				return new UdfResponse() {datatype = p.UdfDataType, Name = p.Name};
 			}
-			key = keyParts.Join("/");
-			return key;
+			var result = new UdfResponse {type = p.UdfType, Name = p.Name};
+			result.Child = new Dictionary<string, object>();
+			p.Properties.Select(UdfSelector).ToList().ForEach(r =>
+			{
+				result.Child.Add(r.Name, r);
+			});
+			return result;
 		}
 
 		public static object GetJsonObject(List<Property> properties)
@@ -65,7 +86,7 @@ namespace BackendMetadataGenerator
 				.Where(p => p.IsArray || p.JavaScriptType != null)
 				.Select(p => new
 				{
-					xpath = GetXPath(p),
+					xpath = p.GetXPath(),
 					name = p.Name,
 					parse = p.JavaScriptType,
 					//isArray = p.IsArray,
@@ -101,7 +122,7 @@ namespace BackendMetadataGenerator
 			{
 				var code = File.ReadAllText(path)
 					.Replace("Maelstrom.WebServices.MaelstromSoapClientProtocol", "SoapHttpClientProtocol")
-					.Replace("[Maelstrom.WebServices.Service", "//");
+					.Replace("[Maelstrom.WebServices", "//");
 				codes.Add(code);
 			}
 			var results = provider.CompileAssemblyFromSource(parameters, codes.ToArray());
@@ -132,6 +153,8 @@ namespace BackendMetadataGenerator
 			{
 				result.ArrayItemName = xmlArrayItemAttribute.ElementName;
 			}
+			var methodAttribute = method.GetCustomAttributes().OfType<SoapDocumentMethodAttribute>().FirstOrDefault();
+			result.SoapAction = methodAttribute.Action;
 
 			foreach (var property in data)
 			{

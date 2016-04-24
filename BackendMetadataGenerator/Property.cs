@@ -18,6 +18,8 @@ namespace BackendMetadataGenerator
 			Name = type.Name;
 		}
 
+		public string SoapAction { get; set; }
+
 		public Property(PropertyData propertyData, Property parent = null)
 		{
 			PropertyData = propertyData;
@@ -177,12 +179,71 @@ namespace BackendMetadataGenerator
 			}
 		}
 
+		public string UdfType
+		{
+			get
+			{
+				if (this.IsArray) return "array";
+				return "navigation";
+			}
+		}
+
+		public string UdfDataType
+		{
+			get
+			{
+				string result = null;
+				switch (this.Type.Name.ToLower())
+				{
+					case "string":
+						break;
+					case "boolean":
+						result = "bool";
+						break;
+					case "int64":
+					case "double":
+					case "int32":
+						result = "float";
+						break;
+					case "datetime":
+						result = "customRFCDate";
+						break;
+					default:
+						break;
+				}
+				return result;
+			}
+		}
+
 		public bool NoSubProperties(Type type)
 		{
 			if (Type == type) return true;
 			if (Type.FullName.StartsWith("System.")) return true;
 			if (IsEnum) return true;
 			return false;
+		}
+
+		public string GetXPath()
+		{
+			Property p = this;
+			//var key = "/Envelope/Body/" + p.XPathName;
+			var key = p.XPathName;
+			var keyParts = key.Split('/').ToList();
+			keyParts[0] = ""; // Remove constant.
+			if (p.IsAttribute && p.Parent != null && p.Parent.IsArray)
+			{
+				keyParts.RemoveAt(keyParts.Count - 2);
+			}
+			if (p.IsArray)
+			{
+				if (keyParts.Last() != p.Name)
+				{
+					// Remove last item.
+					keyParts.RemoveAt(keyParts.Count - 1);
+				}
+			}
+			key = keyParts.Join("/");
+			return key;
 		}
 	}
 }
