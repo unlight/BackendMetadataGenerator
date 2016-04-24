@@ -54,5 +54,6 @@ function parseNode(info, xpath, currentValue, node) {
 
 TODO
 ----
+- Parse UDF attributes
 - Handle XmlElementAttribute properly
 - Document methods
