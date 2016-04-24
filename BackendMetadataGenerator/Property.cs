@@ -13,12 +13,10 @@ namespace BackendMetadataGenerator
 		private List<Property> _properties;
 
 		public Property(Type type)
-			: this(new PropertyData(){Type = type})
+			: this(new PropertyData {Type = type})
 		{
 			Name = type.Name;
 		}
-
-		public string SoapAction { get; set; }
 
 		public Property(PropertyData propertyData, Property parent = null)
 		{
@@ -26,7 +24,7 @@ namespace BackendMetadataGenerator
 			Parent = parent;
 			Name = propertyData.Name;
 			Type = propertyData.Type;
-			IsArray = Type.BaseType == typeof(Array);
+			IsArray = Type.BaseType == typeof (Array);
 			if (IsArray)
 			{
 				Type = Type.GetElementType();
@@ -65,14 +63,11 @@ namespace BackendMetadataGenerator
 			}
 		}
 
+		public string SoapAction { get; set; }
 		public string Name { get; set; }
-
 		public bool IsArray { get; set; }
-		
 		public bool IsEnum { get; set; }
-
 		public string ArrayItemName { get; set; }
-
 		public Property Parent { get; set; }
 
 		public List<Property> Properties
@@ -82,9 +77,7 @@ namespace BackendMetadataGenerator
 		}
 
 		public PropertyData PropertyData { get; set; }
-
 		public bool IsNullable { get; set; }
-
 		public Type Type { get; set; }
 
 		public bool IsAttribute
@@ -164,7 +157,7 @@ namespace BackendMetadataGenerator
 		{
 			get
 			{
-				bool result = false;
+				var result = false;
 				if (Properties.Count == 0) return true;
 				if (ChildProperties.Count > 0)
 				{
@@ -183,7 +176,7 @@ namespace BackendMetadataGenerator
 		{
 			get
 			{
-				if (this.IsArray) return "array";
+				if (IsArray) return "array";
 				return "navigation";
 			}
 		}
@@ -193,24 +186,49 @@ namespace BackendMetadataGenerator
 			get
 			{
 				string result = null;
-				switch (this.Type.Name.ToLower())
+				if (IsArray) return result;
+				var type = this.Type.Name.ToLower();
+				switch (type)
 				{
 					case "string":
 						break;
 					case "boolean":
 						result = "bool";
 						break;
+					case "float":
 					case "int64":
 					case "double":
 					case "int32":
+					case "decimal":
+					case "byte":
+					case "single":
+					case "sbyte":
+					case "int16":
+					case "uint16":
+					case "uint32":
+					case "uint64":
 						result = "float";
 						break;
 					case "datetime":
-						result = "customRFCDate";
+						result = "customRFCDate[RFC]";
 						break;
 					default:
 						break;
 				}
+				if (IsNullable)
+				{
+					switch (result)
+					{
+						case "float":
+						case "datetime":
+							result += "Nullable";
+							break;
+						default:
+							result = null;
+							break;
+					}
+				}
+
 				return result;
 			}
 		}
@@ -225,7 +243,7 @@ namespace BackendMetadataGenerator
 
 		public string GetXPath()
 		{
-			Property p = this;
+			var p = this;
 			//var key = "/Envelope/Body/" + p.XPathName;
 			var key = p.XPathName;
 			var keyParts = key.Split('/').ToList();

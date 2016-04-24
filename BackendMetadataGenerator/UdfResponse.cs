@@ -13,7 +13,7 @@ namespace BackendMetadataGenerator
 		[XmlIgnore]
 		[ScriptIgnore]
 		public string Name { get; set; }
-		
+
 		// ReSharper disable once InconsistentNaming
 		[DataMember(EmitDefaultValue = false, IsRequired = false, Order = 1)]
 		public string type { get; set; }
@@ -26,9 +26,19 @@ namespace BackendMetadataGenerator
 		public Dictionary<string, object> Child { get; set; }
 	}
 
-	public class UdfNode
+	[DataContract]
+	public class UdfConfig
 	{
-		// ReSharper disable once InconsistentNaming
-		public string datatype { get; set; }
+		[DataMember(Order = 1)]
+		public string Version { get; set; }
+
+		[DataMember(Order = 2)]
+		public Dictionary<string, object> Request { get; set; }
+
+		[DataMember(Order = 3)]
+		public Dictionary<string, object> Error { get; set; }
+
+		[DataMember(Order = 4)]
+		public UdfResponse Response { get; set; }
 	}
 }

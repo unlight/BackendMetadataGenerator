@@ -22,15 +22,18 @@ namespace BackendMetadataGenerator
 		public static Dictionary<Type, string> JavaScriptTypes = new Dictionary<Type, string>
 		{
 			{typeof (Byte), "number"},
-			{typeof (Boolean), "boolean"},
 			{typeof (Decimal), "number"},
 			{typeof (Double), "number"},
 			{typeof (Single), "number"},
 			{typeof (Int32), "number"},
+			{typeof (UInt32), "number"},
 			{typeof (Int64), "number"},
+			{typeof (UInt64), "number"},
 			{typeof (SByte), "number"},
 			{typeof (Int16), "number"},
-			{typeof (DateTime), "date"},
+			{typeof (UInt16), "number"},
+			{typeof (Boolean), "boolean"},
+			{typeof (DateTime), "date"}
 		};
 	}
 }

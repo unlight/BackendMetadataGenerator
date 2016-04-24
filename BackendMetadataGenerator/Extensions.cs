@@ -37,7 +37,8 @@ namespace BackendMetadataGenerator
 			serializer.WriteObject(memoryStream, o);
 			memoryStream.Position = 0;
 			string result = new StreamReader(memoryStream).ReadToEnd();
-			return FormatJson(result);
+			//result = FormatJson(result);
+			return result;
 		}
 
 		private static string FormatJson(string json)

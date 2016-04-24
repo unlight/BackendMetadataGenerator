@@ -30,37 +30,36 @@ namespace BackendMetadataGenerator
 				//	//"HeadlineOp_2",
 				//	//"getSubmissionInfoByDCN",
 				//}.Contains(method.Name)) continue;
-				Property data = GetMetadata(method);
+				var data = GetMetadata(method);
 				var json = GetJsonObject(data.ChildProperties);
 				File.WriteAllText(String.Format("{0}.json", method.Name), json.ToJson());
 				var udfjson = GetUdfConfig(data);
-				((Dictionary<string, object>) ((Dictionary<string, object>)
-					udfjson["Request"])["Headers"])["SOAPAction"] = string.Format("\"{0}\"",data.SoapAction);
-				File.WriteAllText(String.Format("{0}.udf.json", method.Name), udfjson.ToJson());
+				((Dictionary<string, object>) udfjson.Request["Headers"])["SOAPAction"] = string.Format("\"{0}\"", data.SoapAction);
+				File.WriteAllText(String.Format("{0}.udf.json", method.Name), udfjson.ToJson2());
 			}
 		}
 
-		public static Dictionary<string, object> GetUdfConfig(Property data)
+		public static UdfConfig GetUdfConfig(Property data)
 		{
-			var d = new Dictionary<string, object>()
+			var d = new UdfConfig
 			{
-				{"Version", "1.0.0"},
-				{"Request", new Dictionary<string, object>()
+				Version = "1.0.0",
+				Request = new Dictionary<string, object>
+				{
+					{"URL", "{{.env.url.tornado}}/urreq/rrurreq.dll?soaprequest"},
 					{
-						{"URL", "{{.env.url.tornado}}/urreq/rrurreq.dll?soaprequest"},
-						{"Headers", new Dictionary<string, object>(){
+						"Headers", new Dictionary<string, object>
+						{
 							{"SOAPAction", ""},
 							{"Content-Type", "text/xml; charset=utf-8"}
-						}},
-						{"Method", "POST"},
-						{"Params", new Dictionary<string,object>()},
-					}
+						}
+					},
+					{"Method", "POST"},
+					{"Params", new object()}
 				},
-				{"Error", new Dictionary<string, object>(){{"Tornado", new Dictionary<string, object>()}}},
-				{"Response", new UdfNode()}
+				Error = new Dictionary<string, object> {{"Tornado", new object()}},
+				Response = UdfSelector(data)
 			};
-			var response = UdfSelector(data);
-			d["Response"] = new Dictionary<string, object>() {{data.Name, response}};
 			return d;
 		}
 
@@ -68,14 +67,11 @@ namespace BackendMetadataGenerator
 		{
 			if (p.Properties.Count == 0)
 			{
-				return new UdfResponse() {datatype = p.UdfDataType, Name = p.Name};
+				return new UdfResponse {datatype = p.UdfDataType, Name = p.Name};
 			}
 			var result = new UdfResponse {type = p.UdfType, Name = p.Name};
 			result.Child = new Dictionary<string, object>();
-			p.Properties.Select(UdfSelector).ToList().ForEach(r =>
-			{
-				result.Child.Add(r.Name, r);
-			});
+			p.Properties.Select(UdfSelector).ToList().ForEach(r => { result.Child.Add(r.Name, r); });
 			return result;
 		}
 
@@ -87,10 +83,10 @@ namespace BackendMetadataGenerator
 				{
 					xpath = p.GetXPath(),
 					name = p.Name,
-					parse = p.JavaScriptType,
+					parse = p.JavaScriptType
 					//isArray = p.IsArray,
 					//noNested = p.NoNestedElements
-				});
+				}).ToList();
 		}
 
 		public static List<MethodInfo> GetMethods()
@@ -147,7 +143,8 @@ namespace BackendMetadataGenerator
 			{
 				result.Name = xmlArrayAttribute.ElementName;
 			}
-			var xmlArrayItemAttribute = method.ReturnParameter.GetCustomAttributes().OfType<XmlArrayItemAttribute>().FirstOrDefault();
+			var xmlArrayItemAttribute =
+				method.ReturnParameter.GetCustomAttributes().OfType<XmlArrayItemAttribute>().FirstOrDefault();
 			if (xmlArrayItemAttribute != null && !string.IsNullOrEmpty(xmlArrayItemAttribute.ElementName))
 			{
 				result.ArrayItemName = xmlArrayItemAttribute.ElementName;
@@ -193,7 +190,7 @@ namespace BackendMetadataGenerator
 			// ReSharper disable once LoopCanBeConvertedToQuery
 			foreach (var propertyInfo in type.GetProperties())
 			{
-				result.Add(new PropertyData()
+				result.Add(new PropertyData
 				{
 					CustomAttributes = propertyInfo.GetCustomAttributes().ToList(),
 					Name = propertyInfo.Name,
@@ -204,7 +201,7 @@ namespace BackendMetadataGenerator
 			// ReSharper disable once LoopCanBeConvertedToQuery
 			foreach (var fieldInfo in publicFields)
 			{
-				result.Add(new PropertyData()
+				result.Add(new PropertyData
 				{
 					CustomAttributes = fieldInfo.GetCustomAttributes().ToList(),
 					Name = fieldInfo.Name,
