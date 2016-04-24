@@ -66,7 +66,6 @@ namespace BackendMetadataGenerator
 
 		private static UdfResponse UdfSelector(Property p)
 		{
-			UdfResponse child = null;
 			if (p.Properties.Count == 0)
 			{
 				return new UdfResponse() {datatype = p.UdfDataType, Name = p.Name};
