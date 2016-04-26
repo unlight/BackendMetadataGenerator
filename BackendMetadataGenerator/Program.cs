@@ -1,9 +1,11 @@
 using System;
 using System.CodeDom.Compiler;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Web.Services.Protocols;
 using System.Xml.Serialization;
@@ -35,7 +37,7 @@ namespace BackendMetadataGenerator
 				File.WriteAllText(String.Format("{0}.json", method.Name), json.ToJson());
 				var udfjson = GetUdfConfig(data);
 				((Dictionary<string, object>) udfjson.Request["Headers"])["SOAPAction"] = string.Format("\"{0}\"", data.SoapAction);
-				File.WriteAllText(String.Format("{0}.udf.json", method.Name), udfjson.ToJson2());
+				File.WriteAllText(String.Format("{0}.udf.json", method.Name), udfjson.ToJson());
 			}
 		}
 
@@ -67,11 +69,29 @@ namespace BackendMetadataGenerator
 		{
 			if (p.Properties.Count == 0)
 			{
-				return new UdfResponse {datatype = p.UdfDataType, Name = p.Name};
+				var r = new UdfResponse {datatype = p.UdfDataType, type = p.UdfType, Name = p.Name};
+				return r;
 			}
 			var result = new UdfResponse {type = p.UdfType, Name = p.Name};
-			result.Child = new Dictionary<string, object>();
-			p.Properties.Select(UdfSelector).ToList().ForEach(r => { result.Child.Add(r.Name, r); });
+			result.Child = new UdfChild();
+			p.Properties.ForEach(p1 =>
+			{
+				var r = UdfSelector(p1);
+				if (p1.IsAttribute)
+				{
+					r.type = "idvalue";
+					if (!result.Child.ContainsKey("attr"))
+					{
+						result.Child["attr"] = new Dictionary<string, UdfResponse>();	
+					}
+					(result.Child["attr"] as Dictionary<string, UdfResponse>).Add(r.Name, r);
+				}
+				else
+				{
+					result.Child.Add(r.Name, r);
+				}
+				
+			});
 			return result;
 		}
 
@@ -84,8 +104,6 @@ namespace BackendMetadataGenerator
 					xpath = p.GetXPath(),
 					name = p.Name,
 					parse = p.JavaScriptType
-					//isArray = p.IsArray,
-					//noNested = p.NoNestedElements
 				}).ToList();
 		}
 

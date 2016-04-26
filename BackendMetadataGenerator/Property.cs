@@ -176,7 +176,9 @@ namespace BackendMetadataGenerator
 		{
 			get
 			{
+				if (Properties.Count == 0) return null;
 				if (IsArray) return "array";
+				if (IsAttribute) return "idvalue";
 				return "navigation";
 			}
 		}

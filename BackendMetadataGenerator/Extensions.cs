@@ -32,6 +32,12 @@ namespace BackendMetadataGenerator
 			{
 				EmitTypeInformation = EmitTypeInformation.Never,
 				UseSimpleDictionaryFormat = true,
+				//KnownTypes = new[]
+				//{
+				//	typeof(UdfResponse), 
+				//	typeof(Dictionary<string, object>), 
+				//	typeof(Dictionary<string, UdfResponse>)
+				//}
 			};
 			var serializer = new DataContractJsonSerializer(o.GetType(), settings);
 			serializer.WriteObject(memoryStream, o);

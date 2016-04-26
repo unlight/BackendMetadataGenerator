@@ -7,7 +7,6 @@ using System.Xml.Serialization;
 namespace BackendMetadataGenerator
 {
 	[DataContract]
-	[Serializable]
 	public class UdfResponse
 	{
 		[XmlIgnore]
@@ -23,7 +22,11 @@ namespace BackendMetadataGenerator
 		public string datatype { get; set; }
 
 		[DataMember(EmitDefaultValue = false, IsRequired = false, Order = 3)]
-		public Dictionary<string, object> Child { get; set; }
+		public UdfChild Child { get; set; }
+	}
+
+	public class UdfChild : Dictionary<string, object>
+	{
 	}
 
 	[DataContract]
