@@ -7,7 +7,10 @@ USAGE
 -----
 1. Place C# proxy class files (with *.cs extension) near executable file (BackendMetadataGenerator.exe)
 2. Run the program
-3. Get `<MethodName>.json` file
+3. Get `<MethodName>.json` file and `<MethodName>.udf.json`
+
+File with `.udf.json` extension is a udf datapoint almost ready 
+to consume by [AppAdmin (MSF)](https://amers1.msf2.cp.icp2.mpp.ime.reuters.com/msf/mngt/appadmin)
 
 The json file contains xpath of response key and value is an object, which contains:  
 * `xpath` (string) - part of response path (maybe useful when using validator option)  
@@ -54,6 +57,6 @@ function parseNode(info, xpath, currentValue, node) {
 
 TODO
 ----
-- Parse UDF attributes
-- Handle XmlElementAttribute properly
+- Convert to lib
+- Create single entry point and use as lib
 - Document methods
